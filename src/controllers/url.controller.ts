@@ -1,13 +1,26 @@
 import { Request, Response } from "express";
 import { generateShortCode } from "../utils/generateShortCode";
+import { isUrlValid } from "../utils/urlValidator";
 import pool from "../db/db";
 
-const createUrl = async (req: Request, res: Response) => {
+interface CreateUrlBody {
+  url: string;
+}
+
+interface Params {
+  shortCode: string;
+}
+
+const createUrl = async (req: Request<{}, {}, CreateUrlBody>, res: Response) => {
   try {
     const { url } = req.body;
 
     if (!url) {
       return res.status(400).json({ error: "URL is required" });
+    }
+
+    if (!isUrlValid(url)) {
+      return res.status(400).json({ error: "Invalid url" });
     }
 
     let shortCode = generateShortCode();
@@ -47,7 +60,7 @@ const createUrl = async (req: Request, res: Response) => {
   }
 };
 
-const getOriginalUrl = async (req: Request, res: Response) => {
+const getOriginalUrl = async (req: Request<Params>, res: Response) => {
   try {
     const { shortCode } = req.params;
 
@@ -80,13 +93,17 @@ const getOriginalUrl = async (req: Request, res: Response) => {
   }
 };
 
-const updateUrl = async (req: Request, res: Response) => {
+const updateUrl = async (req: Request<Params, {}, CreateUrlBody>, res: Response) => {
   try {
     const { url } = req.body;
     const { shortCode } = req.params;
 
     if (!url || !shortCode) {
       return res.status(400).json({ error: "url and shortCode are required" });
+    }
+
+    if (!isUrlValid(url)) {
+      return res.status(400).json({ error: "Invalid url" });
     }
 
     const {
@@ -115,7 +132,7 @@ const updateUrl = async (req: Request, res: Response) => {
   }
 };
 
-const deleteUrl = async (req: Request, res: Response) => {
+const deleteUrl = async (req: Request<Params>, res: Response) => {
   try {
     const { shortCode } = req.params;
 
@@ -140,7 +157,7 @@ const deleteUrl = async (req: Request, res: Response) => {
   }
 };
 
-const getStats = async (req: Request, res: Response) => {
+const getStats = async (req: Request<Params>, res: Response) => {
   try {
     const { shortCode } = req.params;
 
@@ -167,10 +184,10 @@ const getStats = async (req: Request, res: Response) => {
       accessCount: url.number_of_visits,
     });
   } catch (error) {
-      console.error("Error getting stats: ", error);
-      res.status(500).json({
-        error: "Internal server error",
-      });
+    console.error("Error getting stats: ", error);
+    res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };
 
