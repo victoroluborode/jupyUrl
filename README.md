@@ -1,4 +1,4 @@
-# URL Shortener
+# JupyUrl - URL Shortener
 
 A simple REST API for creating, managing, and tracking shortened URLs, built with Express, TypeScript, and PostgreSQL.
 
